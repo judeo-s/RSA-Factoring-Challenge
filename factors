@@ -1,15 +1,41 @@
 #!/usr/bin/python3
 import sys
+import random
+
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def pollard_rho(n):
+    x = random.randint(1, n - 1)
+    y = x
+    c = random.randint(1, n - 1)
+    d = 1
+
+    while d == 1:
+        x = (pow(x, 2, n) + c) % n
+        y = (pow(y, 2, n) + c) % n
+        y = (pow(y, 2, n) + c) % n
+        d = gcd(abs(x - y), n)
+
+        if d == n:
+            return None
+
+    return d
 
 if __name__ == "__main__":
     with open(sys.argv[1], 'r') as file:
         for line in file:
             n = int(line.strip())
-            i = 2
-            while i <= n / i:
+            factors = []
+
+            for i in range(2, int(n ** 0.5) + 1):
                 if n % i == 0:
-                    print(f"{n}={i}*{n // i}")
+                    factors.append(i)
+                    factors.append(n // i)
                     break
-                i += 1
-            else:
-                print(f"{n}={n}*1")
+
+            if len(factors) == 2 and factors[0] * factors[1] == int(line.strip()):
+                factors.sort()
+                print(f"{line.strip()}={'*'.join(str(f) for f in factors)}")
