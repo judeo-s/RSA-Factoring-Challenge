@@ -1,41 +1,57 @@
 #!/usr/bin/python3
 import sys
-import random
+from typing import Tuple
 
-def gcd(a, b):
+
+def calculate_gcd(a: int, b: int) -> int:
     while b:
         a, b = b, a % b
     return a
 
-def pollard_rho(n):
-    x = random.randint(1, n - 1)
-    y = x
-    c = random.randint(1, n - 1)
-    d = 1
+
+def pollards_rho_factorization(n: int) -> Tuple[int, int]:
+    if n % 2 == 0:
+        return 2, n // 2
+
+    x, y, d = 2, 2, 1
+    f = lambda x: (x**2 + 1) % n
 
     while d == 1:
-        x = (pow(x, 2, n) + c) % n
-        y = (pow(y, 2, n) + c) % n
-        y = (pow(y, 2, n) + c) % n
-        d = gcd(abs(x - y), n)
+        x = f(x)
+        y = f(f(y))
+        d = calculate_gcd(abs(x - y), n)
 
-        if d == n:
-            return None
+    return d, n // d
 
-    return d
+
+def factorize_number(number: int) -> Tuple[int, int]:
+    if number <= 1:
+        return number, 1
+    else:
+        return pollards_rho_factorization(number)
+
+
+def main(filename: str) -> None:
+    try:
+        with open(filename, "r") as file:
+            for line in file:
+                current_number = int(line.strip())
+                factor1, factor2 = factorize_number(current_number)
+                print(f"{current_number}={factor1}*{factor2}")
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+    except ValueError:
+        print(
+            "Error: Invalid content in the file. "
+            + "Please ensure all lines contain valid natural "
+            + "numbers greater than 1."
+        )
+
 
 if __name__ == "__main__":
-    with open(sys.argv[1], 'r') as file:
-        for line in file:
-            n = int(line.strip())
-            factors = []
+    if len(sys.argv) != 2:
+        print("Usage: factors file")
+        sys.exit(1)
 
-            for i in range(2, int(n ** 0.5) + 1):
-                if n % i == 0:
-                    factors.append(i)
-                    factors.append(n // i)
-                    break
-
-            if len(factors) == 2 and factors[0] * factors[1] == int(line.strip()):
-                factors.sort()
-                print(f"{line.strip()}={'*'.join(str(f) for f in factors)}")
+    input_filename = sys.argv[1]
+    main(input_filename)
